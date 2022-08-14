@@ -30,6 +30,7 @@ public class ProductosDatos implements Iterable<Producto> {
             public boolean hasNext() {
                 return position < cantidad;
             }
+
             @Override
             public Producto next() {
                 position++;

@@ -1,14 +1,13 @@
 package com.aguilar.luis.proyectobase.app.service;
 
-import java.util.Optional;
-
+import com.aguilar.luis.proyectobase.app.domain.entity.Categoria;
+import com.aguilar.luis.proyectobase.app.domain.repository.CategoriasRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.aguilar.luis.proyectobase.app.domain.entity.Categoria;
-import com.aguilar.luis.proyectobase.app.domain.repository.CategoriasRepository;
+import java.util.Optional;
 
 @Service
 public class CategoriasService {
@@ -51,6 +50,7 @@ public class CategoriasService {
      */
     @Transactional(readOnly = true)
     public Optional<Categoria> find(long id) {
+        log.debug("Request to get Categoria : {}", id);
         return repository.findById(id);
     }
 

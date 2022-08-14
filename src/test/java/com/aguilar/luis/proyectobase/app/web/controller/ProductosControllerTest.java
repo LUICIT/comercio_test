@@ -44,7 +44,7 @@ class ProductosControllerTest {
     void getAllAPI() throws Exception {
         log.debug("TEST to get all Productos");
         given(service.findAll()).willReturn(new ProductosDatos(3));
-        mockMvc.perform( MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .get(baseUrl + "/productos")
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -66,7 +66,7 @@ class ProductosControllerTest {
         producto.setDescripcion(faker.lorem().sentence());
         producto.setCategoria(categoria);
         given(service.find(1)).willReturn(Optional.of(producto));
-        mockMvc.perform( MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .get(baseUrl + "/productos/{id}", 1)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())

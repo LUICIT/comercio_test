@@ -21,6 +21,7 @@ public class CategoriaDatos implements Iterable<Categoria> {
             public boolean hasNext() {
                 return position < cantidad;
             }
+
             @Override
             public Categoria next() {
                 position++;

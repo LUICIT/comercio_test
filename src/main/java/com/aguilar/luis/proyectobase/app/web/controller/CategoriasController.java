@@ -1,10 +1,14 @@
 package com.aguilar.luis.proyectobase.app.web.controller;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Optional;
-
+import com.aguilar.luis.proyectobase.app.domain.entity.Categoria;
+import com.aguilar.luis.proyectobase.app.exception.BadRequestAlertException;
 import com.aguilar.luis.proyectobase.app.exception.NotFoundRequestAlertException;
+import com.aguilar.luis.proyectobase.app.service.CategoriasService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -14,9 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.aguilar.luis.proyectobase.app.domain.entity.Categoria;
-import com.aguilar.luis.proyectobase.app.exception.BadRequestAlertException;
-import com.aguilar.luis.proyectobase.app.service.CategoriasService;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Optional;
 
 /**
  * REST controller for managing Categorias.
@@ -32,7 +36,7 @@ public class CategoriasController {
 
     private final CategoriasService service;
 
-    public CategoriasController (CategoriasService service) {
+    public CategoriasController(CategoriasService service) {
         this.service = service;
     }
     
@@ -49,7 +53,7 @@ public class CategoriasController {
     @PostMapping("/categorias")
     public ResponseEntity<Categoria> createCategoria(@Validated @RequestBody Categoria categoria) throws URISyntaxException {
         log.debug("REST request to save Categoria : {}", categoria);
-        if (categoria.getId() != null) {
+        if (categoria.getId() != null && categoria.getId() != 0L) {
             throw new BadRequestAlertException("A new categoria cannot have an ID", ENTITY_NAME, "idexists");
         }
         Categoria result = service.create(categoria);
@@ -111,14 +115,14 @@ public class CategoriasController {
             return createCategoria(categoria);
         }
         Categoria result = service.update(categoria);
-        return ResponseEntity.ok()
-                .body(result);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**
      * PATCH  /categorias : Updates an existing categoria.
      *
-     * @param categoria the categoria to update
+     * @param id    the categoria to update
+     * @param patch what will be updated
      * @return the ResponseEntity with status 200 (OK) and with body the updated categoria,
      * or with status 400 (Bad Request) if the categoria is not valid,
      * or with status 500 (Internal Server Error) if the categoria couldn't be updated
@@ -127,12 +131,23 @@ public class CategoriasController {
             notes = "Este método sirve para actualizar alguna parte de la categoría dentro " +
                     "de la base de datos.",
             tags = "Categoría")
-    @PatchMapping("/categorias")
-    public ResponseEntity<Categoria> modifyCategoria(@RequestBody Categoria categoria) {
-        log.debug("REST request to update Categoria : {}", categoria);
-        Categoria result = service.change(categoria);
-        return ResponseEntity.ok()
-                .body(result);
+    @PatchMapping(path = "/categorias/{id}", consumes = "application/json-patch+json")
+    public ResponseEntity<Categoria> modifyCategoria(@PathVariable Long id, @RequestBody JsonPatch patch) throws JsonPatchException, JsonProcessingException {
+        log.debug("REST request to update Categoria : {}", patch);
+        Optional<Categoria> optionalCategoria = service.find(id);
+        if (optionalCategoria.isPresent()) {
+            Categoria categoria = optionalCategoria.get();
+            Categoria categoriaPatched = applyPatchToCategoria(patch, categoria);
+            Categoria result = service.change(categoriaPatched);
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        throw new NotFoundRequestAlertException("Account with ID not found", ENTITY_NAME, "notfound");
+    }
+
+    private Categoria applyPatchToCategoria(JsonPatch patch, Categoria targetCategoria) throws JsonPatchException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode patched = patch.apply(objectMapper.convertValue(targetCategoria, JsonNode.class));
+        return objectMapper.treeToValue(patched, Categoria.class);
     }
 
     /**

@@ -42,7 +42,7 @@ class CategoriasControllerTest {
     void getAllAPI() throws Exception {
         log.debug("TEST to get all Categoria");
         given(service.findAll()).willReturn(new CategoriaDatos(3));
-        mockMvc.perform( MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .get(baseUrl + "/categorias")
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -57,7 +57,7 @@ class CategoriasControllerTest {
         categoria.setNombre("Categoría 1");
         categoria.setDescripcion("Esta es una descripción para la Categoría 1");
         given(service.find(1)).willReturn(Optional.of(categoria));
-        mockMvc.perform( MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .get(baseUrl + "/categorias/{id}", 1)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
